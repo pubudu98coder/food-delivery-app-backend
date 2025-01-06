@@ -12,29 +12,26 @@ import authMiddleWare from './middleware/authMiddleWare.js';
 import corsOptions from './config/corsOptions.js'
 import cookieParser from 'cookie-parser';
 import credentials from './middleware/credentials.js';
+import mongoose from 'mongoose';
 
+//env cofiguration
 dotenv.config();
+
+//db connection
+connectDB();
 
 //app configuration
 const app = express();
 const port = process.env.PORT || 5000
 
+//credentials
 app.use(credentials);
 
 //Cross origin resource sharing
-// app.use(cors({
-//     origin: 'http://localhost:5173', // Replace with your frontend's URL
-//     credentials: true,
-// }));
 app.use(cors(corsOptions));
 
 //built in middleware for json
 app.use(express.json());
-
-//db connection
-connectDB();
-
-
 
 //middleware for cookies
 app.use(cookieParser());
@@ -44,19 +41,24 @@ app.use('/api/food', foodRouter);
 app.use('/api/user', userRouter);
 app.use('/api/order', orderRouter);
 app.use('/images', express.static('uploads'));
+
+//the endpoints after this needs authorization
 app.use(authMiddleWare);
 app.use('/api/cart',cartRouter);
 
+//error handling middleware
 app.use(errorHandler)
-
 
 app.get('/', (req, res) => {
     res.send("API is working");
 });
 
-
-app.listen(port,()=>{
-    console.log(`Server started on http://localhost:${port}`)
+mongoose.connection.once('open', () =>{
+    console.log("Database connection successfull");
+    app.listen(port,()=>{
+        console.log(`Server started on http://localhost:${port}`)
+    });
 });
+
 
 
