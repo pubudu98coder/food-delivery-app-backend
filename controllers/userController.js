@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import userModel from '../models/userModel.js';
 import AppError from '../utils/AppError.js'
+import roleList from '../config/roleList.js';
 
 const createJWTToken = (id) =>{
     return jwt.sign({id}, process.env.JWT_SECRET);
@@ -32,7 +33,8 @@ const register = async (req, res) => {
         const newUser = new userModel({
             name: name,
             email: email,
-            password: hashedPW
+            password: hashedPW,
+            roleList:[roleList.USER]
         });
 
         const user = await newUser.save();
@@ -57,13 +59,18 @@ const login = async (req, res, next) => {
             throw new AppError("Email doesn't exist", 404);       
         }
         const isMatch = await bcrypt.compare(password, user.password)
-
+        const {_id, roleList} = user;
         if (isMatch) {
             // const token = createJWTToken(user._id);
             const accessToken = jwt.sign(
-                {"userId":user._id},
+                {
+                    "userInfo":{
+                        "userId":_id,
+                        "roleList":roleList
+                    }
+                },
                 process.env.ACCESS_TOKEN_SECRET,
-                {expiresIn:'30s'},
+                {expiresIn:'1h'},
                 { algorithm: 'RS256' }
             );
 
@@ -109,11 +116,16 @@ const refreshToken = async (req, res, next) => {
                 if (error || user._id.toString() !== decoded.userId) {
                     throw new AppError("Forbiddend", 403);
                 }
-
+                const {_id, roleList} = decoded.userInfo;
                 const accessToken =  jwt.sign(
-                    {"userId": user._id},
+                    {
+                        "userInfo": {
+                            "userId":_id,
+                            "roleList":roleList
+                        }
+                    },
                     process.env.ACCESS_TOKEN_SECRET,
-                    {expiresIn:'30s'},
+                    {expiresIn:'1h'},
                     {algorithm: 'RS256'}
                 );
 
