@@ -7,6 +7,11 @@ import userRouter from './routes/userRoutes.js';
 import 'dotenv/config.js'
 import cartRouter from './routes/cartRoute.js';
 import orderRouter from './routes/orderRoute.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import authMiddleWare from './middleware/authMiddleWare.js';
+import corsOptions from './config/corsOptions.js'
+import cookieParser from 'cookie-parser';
+import credentials from './middleware/credentials.js';
 
 dotenv.config();
 
@@ -14,19 +19,35 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000
 
-//middleware
+app.use(credentials);
+
+//Cross origin resource sharing
+// app.use(cors({
+//     origin: 'http://localhost:5173', // Replace with your frontend's URL
+//     credentials: true,
+// }));
+app.use(cors(corsOptions));
+
+//built in middleware for json
 app.use(express.json());
-app.use(cors());
 
 //db connection
 connectDB();
 
+
+
+//middleware for cookies
+app.use(cookieParser());
+
 //api endpoints
 app.use('/api/food', foodRouter);
 app.use('/api/user', userRouter);
-app.use('/api/cart',cartRouter);
 app.use('/api/order', orderRouter);
 app.use('/images', express.static('uploads'));
+app.use(authMiddleWare);
+app.use('/api/cart',cartRouter);
+
+app.use(errorHandler)
 
 
 app.get('/', (req, res) => {

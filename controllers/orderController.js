@@ -47,6 +47,7 @@ const placeOrder = async (req, res) => {
         });
 
         res.json({success:true, session_url: session.url});
+        console.log("dff");
     } catch (error) {
         console.log(error);
         res.json({success: false, message: "Internal server error"});
