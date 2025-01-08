@@ -83,7 +83,7 @@ const login = async (req, res, next) => {
 
             await userModel.findByIdAndUpdate(user._id, {refreshToken: refreshToken});
             res.cookie('jwt', refreshToken, {httpOnly: true, sameSite:'None', secure:true, maxAge: 24*60*60*1000})
-                .status(200).json({success: true , accessToken, message: "Authentication is successful"});
+                .status(200).json({success: true , accessToken, roleList,userId:user._id, message: "Authentication is successful"});
         } else {
             throw new AppError("Invalid credentials", 401);
         }
